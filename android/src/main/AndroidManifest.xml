@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Installer les mises à jour téléchargées par l'application (autorisation demandée une fois) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <application>
+        <!-- Réponse de l'installateur d'Android (confirmation, succès, échec) -->
+        <receiver android:name="fr.orfeo.updater.InstallResultReceiver" android:exported="false" />
+    </application>
+</manifest>

@@ -1,0 +1,23 @@
+{
+  "name": "@orfeo/updater",
+  "version": "1.0.0",
+  "description": "Mise à jour des applications Android d'orfeo971 depuis l'application (Releases GitHub)",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./ui": "./src/ui.js",
+    "./ui.css": "./src/ui.css"
+  },
+  "files": ["src/", "android/src/", "android/build.gradle"],
+  "capacitor": {
+    "android": { "src": "android" }
+  },
+  "peerDependencies": {
+    "@capacitor/core": ">=8.0.0",
+    "@capacitor/app": ">=8.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}

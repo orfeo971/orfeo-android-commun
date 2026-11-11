@@ -1,0 +1,82 @@
+# Procédure commune : tests, construction de l'APK signé et publication dans les Releases du dépôt appelant.
+# Appel depuis une application (voir README.md) :
+#   jobs:
+#     apk:
+#       uses: orfeo971/orfeo-android-commun/.github/workflows/apk-android.yml@v1
+#       with: { app-name: Plouf, tag-prefix: plouf-v, version-prefix: "0.1" }
+#       secrets: inherit
+name: APK Android (commun)
+
+on:
+  workflow_call:
+    inputs:
+      app-name:        { type: string, required: true,  description: "Nom affiché (« Plouf ») ; APK publié : <app-name>-<version>.apk" }
+      tag-prefix:      { type: string, required: true,  description: "Début de l'étiquette de release (« plouf-v »), lu par @orfeo/updater" }
+      version-prefix:  { type: string, default: "1.0",  description: "Version = <version-prefix>.<build>, identique au versionName Gradle" }
+      build-offset:    { type: number, default: 0,      description: "Ajouté au numéro d'exécution (suite de numéros d'un ancien dépôt)" }
+      flavor:          { type: string, default: "",     description: "Variable FLAVOR pour npm run sync (applications à plusieurs variantes)" }
+      gradle-task:     { type: string, default: "assembleRelease" }
+      apk-path:        { type: string, default: "app/build/outputs/apk/release/app-release.apk", description: "Chemin de l'APK produit, depuis android/" }
+      make-latest:     { type: boolean, default: true }
+      release-body:    { type: string, default: "Sur le téléphone : Réglages › Mises à jour, ou télécharger le fichier .apk ci-dessous puis l'ouvrir." }
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: android/**/*.gradle*
+
+      - name: Numéro de version
+        run: |
+          BUILD=$((GITHUB_RUN_NUMBER + ${{ inputs.build-offset }}))
+          echo "BUILD=$BUILD" >> "$GITHUB_ENV"
+          echo "VERSION=${{ inputs.version-prefix }}.$BUILD" >> "$GITHUB_ENV"
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Application web
+        env:
+          FLAVOR: ${{ inputs.flavor }}
+        run: npm run sync
+
+      - name: APK
+        working-directory: android
+        env:
+          BUILD_NUMBER: ${{ env.BUILD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ inputs.gradle-task }} --no-daemon --stacktrace
+          mkdir -p ../dist
+          cp "${{ inputs.apk-path }}" "../dist/${{ inputs.app-name }}-${{ env.VERSION }}.apk"
+
+      - name: Publication (page Releases du dépôt)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag-prefix }}${{ env.VERSION }}
+          name: ${{ inputs.app-name }} ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          make_latest: ${{ inputs.make-latest }}
+          body: |
+            APK Android de ${{ inputs.app-name }} (build ${{ env.BUILD }}, branche ${{ github.ref_name }}).
+            ${{ inputs.release-body }}
+          files: dist/*.apk

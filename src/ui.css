@@ -1,0 +1,18 @@
+/* Styles des mises à jour (repris de Level Up). Variables reprises de l'application si elles existent, sinon valeurs par défaut. */
+.banner.update{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; padding:10px 12px; border-radius:12px; background:color-mix(in srgb, var(--blue, #1F5FAE) 12%, var(--paper, #fff)); border:1px solid var(--blue, #1F5FAE); }
+.upd-step{ margin:12px 0; }
+.upd-l{ display:flex; justify-content:space-between; font-weight:600; }
+.upd-bar{ display:block; height:10px; margin:6px 0 4px; border-radius:99px; background:var(--line, #D3DBE3); overflow:hidden; }
+.upd-bar i{ display:block; height:100%; border-radius:99px; background:var(--blue, #1F5FAE); transition:width .2s; }
+.upd-step small{ color:var(--muted, #55616D); font-size:.82rem; }
+
+/* carte « Mise à jour » en haut des Réglages */
+.upd-card{ display:flex; align-items:center; gap:12px; }
+.upd-card .upd-ic{ flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:1.15rem; background:var(--bg, #EEF2F5); color:var(--muted, #55616D); }
+.upd-card .upd-tx{ flex:1; min-width:0; } .upd-card .upd-tx b{ display:block; } .upd-card .upd-tx small{ display:block; color:var(--muted, #55616D); font-size:.84rem; }
+.upd-card .btn{ flex:none; }
+.upd-card.ok .upd-ic{ background:var(--fv-bg, #E3F2E8); color:var(--fv, #2E7D4F); }
+.upd-card.available{ border-color:var(--blue, #1F5FAE); } .upd-card.available .upd-ic{ background:var(--blue, #1F5FAE); color:#fff; }
+.upd-card.warn .upd-ic{ background:var(--fo-bg, #FFF1D9); color:var(--fo, #B86E00); }
+.upd-card.checking .upd-ic{ animation:upd-spin 1s linear infinite; }
+@keyframes upd-spin{ to{ transform:rotate(360deg); } }
