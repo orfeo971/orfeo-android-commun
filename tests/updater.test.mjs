@@ -46,3 +46,9 @@ test("version installée lue dès le démarrage", async () => {
   await new Promise(r => setTimeout(r, 0));
   assert.equal(u.state.current, "0.1.8");
 });
+
+test("la version la plus haute l'emporte, quel que soit l'ordre de GitHub", () => {
+  const apk = n => [{ name: n + ".apk", size: 1, url: "api", browser_download_url: "web" }];
+  const l = [{ tag_name: "plouf-v0.1.9", assets: apk("9") }, { tag_name: "plouf-v0.1.10", assets: apk("10") }, { tag_name: "plouf-v0.1.8", assets: apk("8") }];
+  assert.equal(pickRelease(l, "plouf-v", "").version, "0.1.10");
+});

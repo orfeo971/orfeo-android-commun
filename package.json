@@ -1,6 +1,6 @@
 {
   "name": "@orfeo/updater",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mise à jour des applications Android d'orfeo971 depuis l'application (Releases GitHub)",
   "type": "module",
   "main": "src/index.js",

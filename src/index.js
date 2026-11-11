@@ -10,10 +10,12 @@ export function compareVersions(a, b) {
   return 0;
 }
 
-/* dernière release publiée dont l'étiquette commence par prefix et qui contient un APK */
+/* release la plus récente (numéro de version le plus haut, pas la première de la liste : GitHub classe
+   « 0.1.9 » avant « 0.1.10 ») dont l'étiquette commence par prefix et qui contient un APK */
 export function pickRelease(list, prefix, token) {
-  const rel = (list || []).find(x => !x.draft && String(x.tag_name || "").startsWith(prefix) && (x.assets || []).some(a => /\.apk$/i.test(a.name)));
-  if (!rel) return null;
+  const candidates = (list || []).filter(x => !x.draft && String(x.tag_name || "").startsWith(prefix) && (x.assets || []).some(a => /\.apk$/i.test(a.name)));
+  if (!candidates.length) return null;
+  const rel = candidates.reduce((best, x) => (compareVersions(x.tag_name.slice(prefix.length), best.tag_name.slice(prefix.length)) > 0 ? x : best));
   const asset = rel.assets.find(a => /\.apk$/i.test(a.name));
   return { version: rel.tag_name.slice(prefix.length), tag: rel.tag_name, name: rel.name, notes: rel.body || "", page: rel.html_url, size: asset.size,
     /* dépôt privé : lien d'API (le jeton ne part que vers api.github.com) ; public : lien direct */
@@ -55,7 +57,7 @@ export function createUpdater(config, env = {}) {
   async function appVersion() { try { return App ? (await App.getInfo()).version : null; } catch (e) { return null; } }
 
   async function latestRelease() {
-    const url = "https://api.github.com/repos/" + cfg.repo + "/releases?per_page=30";
+    const url = "https://api.github.com/repos/" + cfg.repo + "/releases?per_page=100";
     const t = cfg.private ? token() : "";
     const headers = { Accept: "application/vnd.github+json", "User-Agent": "orfeo-updater", ...(t ? { Authorization: "Bearer " + t } : {}) };
     let list;
