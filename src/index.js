@@ -110,6 +110,9 @@ export function createUpdater(config, env = {}) {
     } catch (e) { state.status = "error"; state.msg = e.message || String(e); changed(); }
   }
 
+  /* version installée connue dès le démarrage (sinon « ? » jusqu'à la prochaine recherche) */
+  if (Updater) appVersion().then(v => { if (v && !state.current) { state.current = v; changed(); } });
+
   if (Updater) {
     try {
       Updater.addListener("updateProgress", e => {

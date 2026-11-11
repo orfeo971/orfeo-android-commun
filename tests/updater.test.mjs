@@ -39,3 +39,10 @@ test("feuille : progression et étape de confirmation", () => {
   assert.match(html, /Confirme l'installation dans la fenêtre d'Android/);
   assert.match(banniere(u), /Nouvelle version 0\.1\.11/);
 });
+
+test("version installée lue dès le démarrage", async () => {
+  const faux = { Capacitor: { isNativePlatform: () => true }, registerPlugin: n => n === "App" ? { getInfo: async () => ({ version: "0.1.8" }) } : { addListener() {} } };
+  const u = createUpdater({ name: "Plouf", repo: "orfeo971/plouf", prefix: "plouf-v" }, { capacitor: faux, storage: null });
+  await new Promise(r => setTimeout(r, 0));
+  assert.equal(u.state.current, "0.1.8");
+});
