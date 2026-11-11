@@ -17,6 +17,7 @@ on:
       flavor:          { type: string, default: "",     description: "Variable FLAVOR pour npm run sync (applications à plusieurs variantes)" }
       gradle-task:     { type: string, default: "assembleRelease" }
       apk-path:        { type: string, default: "app/build/outputs/apk/release/app-release.apk", description: "Chemin de l'APK produit, depuis android/" }
+      keystore-file:   { type: string, default: "", description: "Nom du fichier de clé attendu par Gradle dans android/app (ex. plouf-signing.jks), reconstitué depuis les secrets ANDROID_KEYSTORE_BASE64 et ANDROID_KEYSTORE_PASSWORD ; vide = clé déjà dans le dépôt (Level Up)" }
       make-latest:     { type: boolean, default: true }
       release-body:    { type: string, default: "Sur le téléphone : Réglages › Mises à jour, ou télécharger le fichier .apk ci-dessous puis l'ouvrir." }
 
@@ -54,6 +55,19 @@ jobs:
       - name: Tests
         run: npm test
 
+      # Clé de signature hors du dépôt : reconstituée depuis les secrets (jamais affichée dans le journal)
+      - name: Clé de signature
+        if: inputs.keystore-file != ''
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Secrets ANDROID_KEYSTORE_BASE64 et ANDROID_KEYSTORE_PASSWORD absents : ajoute-les dans Settings › Secrets and variables › Actions (sans eux, l'APK serait signé avec une clé de débogage et les mises à jour échoueraient)."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "android/app/${{ inputs.keystore-file }}"
+
       - name: Application web
         env:
           FLAVOR: ${{ inputs.flavor }}
@@ -63,6 +77,7 @@ jobs:
         working-directory: android
         env:
           BUILD_NUMBER: ${{ env.BUILD }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew ${{ inputs.gradle-task }} --no-daemon --stacktrace

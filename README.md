@@ -66,6 +66,13 @@ jobs:
     secrets: inherit
 ```
 
+### Clé de signature hors du dépôt (recommandé)
+
+Avec `keystore-file: plouf-signing.jks`, la procédure reconstitue la clé depuis deux secrets du dépôt de l'application
+(Settings › Secrets and variables › Actions) : `ANDROID_KEYSTORE_BASE64` (fichier .jks encodé en base64) et
+`ANDROID_KEYSTORE_PASSWORD`. Gradle lit le mot de passe dans la variable `ANDROID_KEYSTORE_PASSWORD`.
+Sans ces secrets, la publication s'arrête avec un message clair.
+
 ## Conventions
 
 - Étiquette de release : `<appli>-v<majeur>.<mineur>.<build>`, avec l'APK joint.
