@@ -62,11 +62,15 @@ jobs:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "::error::Secrets ANDROID_KEYSTORE_BASE64 et ANDROID_KEYSTORE_PASSWORD absents : ajoute-les dans Settings › Secrets and variables › Actions (sans eux, l'APK serait signé avec une clé de débogage et les mises à jour échoueraient)."
+          manque=""
+          [ -z "$KEYSTORE_B64" ] && manque="ANDROID_KEYSTORE_BASE64"
+          [ -z "$KEYSTORE_PASSWORD" ] && manque="$manque ANDROID_KEYSTORE_PASSWORD"
+          if [ -n "$manque" ]; then
+            echo "::error title=Clé de signature::Secret(s) introuvable(s) : $manque. À créer dans Settings › Secrets and variables › Actions › onglet Secrets › Repository secrets (pas Variables, pas Environment secrets), nom exact en majuscules."
             exit 1
           fi
-          echo "$KEYSTORE_B64" | base64 -d > "android/app/${{ inputs.keystore-file }}"
+          echo "$KEYSTORE_B64" | tr -d ' \r\n' | base64 -d > "android/app/${{ inputs.keystore-file }}" || { echo "::error title=Clé de signature::ANDROID_KEYSTORE_BASE64 n'est pas un base64 valide (copier tout le contenu du fichier .b64)."; exit 1; }
+          keytool -list -keystore "android/app/${{ inputs.keystore-file }}" -storepass "$KEYSTORE_PASSWORD" > /dev/null || { echo "::error title=Clé de signature::La clé ne s'ouvre pas avec ANDROID_KEYSTORE_PASSWORD (mot de passe différent ?)."; exit 1; }
 
       - name: Application web
         env:
