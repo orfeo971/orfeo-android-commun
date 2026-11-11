@@ -69,7 +69,7 @@ jobs:
             echo "::error title=Clé de signature::Secret(s) introuvable(s) : $manque. À créer dans Settings › Secrets and variables › Actions › onglet Secrets › Repository secrets (pas Variables, pas Environment secrets), nom exact en majuscules."
             exit 1
           fi
-          echo "$KEYSTORE_B64" | tr -d ' \r\n' | base64 -d > "android/app/${{ inputs.keystore-file }}" || { echo "::error title=Clé de signature::ANDROID_KEYSTORE_BASE64 n'est pas un base64 valide (copier tout le contenu du fichier .b64)."; exit 1; }
+          printf '%s\n' "$KEYSTORE_B64" | grep -v -- '-----' | tr -d ' \r\n\t' | base64 -d > "android/app/${{ inputs.keystore-file }}" || { echo "::error title=Clé de signature::ANDROID_KEYSTORE_BASE64 n'est pas un base64 valide (copier tout le contenu du fichier .b64)."; exit 1; }
           keytool -list -keystore "android/app/${{ inputs.keystore-file }}" -storepass "$KEYSTORE_PASSWORD" > /dev/null || { echo "::error title=Clé de signature::La clé ne s'ouvre pas avec ANDROID_KEYSTORE_PASSWORD (mot de passe différent ?)."; exit 1; }
 
       - name: Application web
